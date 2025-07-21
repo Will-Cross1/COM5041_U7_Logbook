@@ -75,9 +75,18 @@
     var json_data = JSON.parse( localStorage.getItem('json_data') );
 
     if (json_data) {
+      // Remove null
+      json_data = json_data.filter(e => e);
+      // Sort by deadline (earliest first), fallback to far future if no deadline
+      json_data.sort((a, b) => {
+        let dateA = a.deadline ? new Date(a.deadline) : new Date('9999-12-31');
+        let dateB = b.deadline ? new Date(b.deadline) : new Date('9999-12-31');
+        return dateA - dateB;
+      });
+
       json_data.forEach(element => {
         if (element) {
-          newTodo(element.title, element.description, element.id);
+          newTodo(element.title, element.description, element.id, element.deadline);
         }
       });
     }
@@ -145,10 +154,12 @@
 
     }
 
-    function newTodo(todoTitle, todoDesc, todoID) {
+    function newTodo(todoTitle, todoDesc, todoID, todoDeadline) {
       if (!todoTitle && !todoID) {
         todoTitle = document.getElementById("todoTitle").value;
         todoDesc = document.getElementById("todoDesc").value;
+        var todoDeadline = document.getElementById("todoDeadline").value;
+
         deadline = document.getElementById("todoDeadline").value;
         if (todoTitle) {
           var todoID = storeTodoLocal(todoTitle, todoDesc, deadline);
@@ -156,7 +167,9 @@
       }
       if (todoTitle) {
         // console.log(todoTitle);
-        var todoHTML = '<a href="#" data-toggle="modal" data-target="#todoModal">' + todoTitle + '</a> <a href="#" class="btn btn-sm btn-danger m-1 delete">Delete</a>';
+        var todoHTML = '<span class="mr-3">' + (todoDeadline || "No date") + '</span>' +
+               '<a href="#" data-toggle="modal" data-target="#todoModal">' + todoTitle + '</a> ' +
+               '<a href="#" class="btn btn-sm btn-danger m-1 delete">Delete</a>';
         var todoList = document.getElementById("todo-list");
         var newTodoElement = document.createElement("li");
         newTodoElement.setAttribute("data-id", todoID);
@@ -166,7 +179,7 @@
       }
     }
 
-    function storeTodoLocal(todoTitle, todoDesc, deadline) {
+    function storeTodoLocal(todoTitle, todoDesc, todoDeadline) {
       
       // retrieve and parse existing JSON from localstorage
       var json_temp = JSON.parse( localStorage.getItem('json_data') );
@@ -183,7 +196,7 @@
         "id": todoID,
         "title": todoTitle,
         "description": todoDesc,
-        "deadline": deadline,
+        "deadline": todoDeadline,
         "completed": false
       });
 
