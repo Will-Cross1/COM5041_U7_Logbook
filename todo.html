@@ -41,12 +41,23 @@
             </button>
           </div>
           <div class="modal-body">
-            <p>Title: <span id="todo-title"></span></p>
-            <p>Description: <span id="todo-description"></span></p>
-            <p>Deadline: <span id="todo-deadline"></span></p>
+            <form id="editableTodoForm">
+              <div class="form-group">
+                <label for="editableTodoTitle">Title</label>
+                <input type="text" class="form-control" id="editableTodoTitle">
+              </div>
+              <div class="form-group">
+                <label for="editableTodoDescription">Description</label>
+                <textarea class="form-control" id="editableTodoDescription" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="editableTodoDeadline">Deadline</label>
+                <input type="date" class="form-control" id="editableTodoDeadline">
+              </div>
+            </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-primary" onclick="saveTodoChanges()">Save changes</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
         </div>
@@ -73,6 +84,27 @@
 
     registerEventListeners();
 
+    function saveTodoChanges() {
+      // Get the values from the form
+      var todoID = document.getElementById("todoModal").getAttribute('data-id');
+      // Get the local storage Todo data
+      var json_temp = JSON.parse(localStorage.getItem('json_data'));
+
+      if (json_temp[todoID]) {
+        json_temp[todoID].title = document.getElementById("editableTodoTitle").value;
+        json_temp[todoID].description = document.getElementById("editableTodoDescription").value;
+        json_temp[todoID].deadline = document.getElementById("editableTodoDeadline").value;
+        // Set the local storage to the new values
+        localStorage.setItem('json_data', JSON.stringify(json_temp));
+
+        // Update displayed title in list
+        var todoElement = document.querySelector("li[data-id='" + todoID + "'] a");
+        if (todoElement) {
+          todoElement.innerHTML = json_temp[todoID].title;
+        }
+      }
+    }
+
     function registerEventListeners() {
       var deleteButtons = document.querySelectorAll(".delete");
       deleteButtons.forEach(function(button) {
@@ -86,10 +118,10 @@
         link.addEventListener("click", function() {
           var todoID = this.parentNode.getAttribute('data-id');
           var currentTodo = getTodo(todoID);
-          // console.log(currentTodo);
-          document.getElementById("todo-title").innerHTML = currentTodo.title;
-          document.getElementById("todo-description").innerHTML = currentTodo.description;
-          document.getElementById("todo-deadline").innerHTML = currentTodo.deadline;
+          document.getElementById("editableTodoTitle").value = currentTodo.title;
+          document.getElementById("editableTodoDescription").value = currentTodo.description;
+          document.getElementById("editableTodoDeadline").value = currentTodo.deadline;
+          document.getElementById("todoModal").setAttribute('data-id', todoID);
         });
       });
     }
